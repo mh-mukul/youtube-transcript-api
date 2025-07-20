@@ -1,0 +1,10 @@
+services:
+  yt-transcript-api:
+    image: yt-transcript-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: yt-transcript-api
+    ports:
+      - "6075:6075"
+    restart: unless-stopped
