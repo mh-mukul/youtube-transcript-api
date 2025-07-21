@@ -1,3 +1,5 @@
+beautifulsoup4
 fastapi
+requests
 uvicorn[standard]
 youtube-transcript-api

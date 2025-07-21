@@ -1,5 +1,7 @@
-from fastapi import FastAPI, HTTPException, Query
+import requests
+from bs4 import BeautifulSoup
 from urllib.parse import urlparse, parse_qs
+from fastapi import FastAPI, HTTPException, Query
 
 from youtube_transcript_api import (
     YouTubeTranscriptApi,
@@ -10,6 +12,17 @@ from youtube_transcript_api import (
 
 app = FastAPI()
 ytt_api = YouTubeTranscriptApi()
+
+
+def get_page_title(url):
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()  # Raise error for bad status
+        soup = BeautifulSoup(response.text, 'html.parser')
+        title = soup.title.string.strip() if soup.title else 'No title found'
+        return title
+    except Exception as e:
+        return f"Error: {e}"
 
 
 def extract_video_id(url_or_id: str) -> str:
@@ -48,4 +61,4 @@ def get_transcript(video: str = Query(..., description="YouTube URL or Video ID"
         raise HTTPException(
             status_code=400, detail="Invalid YouTube URL or Video ID.")
     text = fetch_transcript_text(video_id)
-    return {"video_id": video_id, "transcript": text}
+    return {"title": get_page_title(video), "video_id": video_id, "transcript": text}
