@@ -14,6 +14,7 @@ from yt_dlp import YoutubeDL
 
 app = FastAPI()
 ytt_api = YouTubeTranscriptApi()
+yt_dlp = YoutubeDL()
 
 
 async def get_page_title(url):
@@ -59,17 +60,30 @@ async def fetch_transcript_text(video_id: str) -> str:
 
 async def get_video_stats(video_id: str) -> dict:
     # Using synchronous YoutubeDL for now - could be moved to a thread if needed
-    with YoutubeDL() as ydl:
-        info = ydl.extract_info(video_id, download=False)
-        return {
-            "title": info.get("title"),
-            "channel": info.get("uploader"),
-            "upload_date": info.get("upload_date"),
-            "duration": info.get("duration"),
+    info = yt_dlp.extract_info(video_id, download=False)
+    return {
+        "title": info.get("title"),
+        "channel": info.get("uploader"),
+        "upload_date": info.get("upload_date"),
+        "duration": info.get("duration"),
             "views": info.get("view_count"),
             "likes": info.get("like_count"),
             "comments": info.get("comment_count")
         }
+
+
+async def search_videos(query: str, max_results=5) -> list:
+    # Using synchronous YoutubeDL for now - could be moved to a thread if needed
+    search = f"ytsearch{max_results}:{query}"
+    info = yt_dlp.extract_info(search, download=False)
+    results = []
+    for entry in info['entries']:
+        results.append({
+                "title": entry.get("title"),
+                "url": f"https://www.youtube.com/watch?v={entry.get('id')}",
+                "channel": entry.get("uploader"),
+            })
+    return results
 
 
 @app.get("/api/transcript")
@@ -92,3 +106,13 @@ async def get_video_info(video: str = Query(..., description="YouTube URL or Vid
     info = await get_video_stats(video_id)
     title = await get_page_title(video)
     return {"title": title, "video_id": video_id, "info": info}
+
+
+@app.get("/api/search")
+async def search_videos_endpoint(
+    query: str = Query(..., description="Search query"),
+    max_results: int = Query(
+        5, description="Maximum number of results to return")
+):
+    results = await search_videos(query, max_results)
+    return {"results": results}
