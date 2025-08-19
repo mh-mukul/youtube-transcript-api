@@ -1,5 +1,6 @@
 beautifulsoup4
 fastapi
-requests
+httpx
 uvicorn[standard]
 youtube-transcript-api
+yt-dlp

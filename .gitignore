@@ -25,3 +25,5 @@ wheels/
 
 venv/
 .env
+
+.vscode/
