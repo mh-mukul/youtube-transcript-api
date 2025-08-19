@@ -1,6 +1,7 @@
 beautifulsoup4
 fastapi
 httpx
+python-dotenv
 uvicorn[standard]
 youtube-transcript-api
 yt-dlp
